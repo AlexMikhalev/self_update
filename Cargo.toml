@@ -31,7 +31,7 @@ regex = "1"
 log = "0.4"
 urlencoding = "2.1"
 self-replace = "1"
-zipsign-api = { version = "0.1", default-features = false, optional = true }
+zipsign-api = { version = "0.2", default-features = false, optional = true }
 
 http = "1"
 
