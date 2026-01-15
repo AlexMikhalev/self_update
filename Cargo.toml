@@ -31,7 +31,9 @@ self-replace = "1"
 zipsign-api = { version = "0.2", default-features = false, optional = true }
 
 [features]
-default = ["reqwest/default-tls"]
+default = ["reqwest", "reqwest/default-tls"]
+reqwest = ["dep:reqwest"]
+ureq = ["dep:ureq"]
 archive-zip = ["zip", "zipsign-api?/verify-zip"]
 compression-zip-bzip2 = ["archive-zip", "zip/bzip2"]
 compression-zip-deflate = ["archive-zip", "zip/deflate"]
