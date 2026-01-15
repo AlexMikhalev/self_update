@@ -3,15 +3,15 @@ Amazon S3 releases
 */
 use crate::http_client::{self, HttpResponse};
 use crate::{
+    DEFAULT_PROGRESS_CHARS, DEFAULT_PROGRESS_TEMPLATE,
     errors::*,
     get_target,
     update::{Release, ReleaseAsset, ReleaseUpdate},
     version::bump_is_greater,
-    DEFAULT_PROGRESS_CHARS, DEFAULT_PROGRESS_TEMPLATE,
 };
 use log::debug;
-use quick_xml::events::Event;
 use quick_xml::Reader;
+use quick_xml::events::Event;
 use regex::Regex;
 use std::cmp::Ordering;
 use std::env::{self, consts::EXE_SUFFIX};
@@ -655,7 +655,9 @@ fn fetch_releases_from_s3(
             },
             Ok(Event::Text(e)) => {
                 // if we cannot decode a tag text we just ignore it
-                if let Ok(txt) = e.decode().map(|r| r.into_owned()) {
+                // Use unescape() for newer quick-xml versions
+                if let Ok(unescaped) = e.unescape() {
+                    let txt: String = unescaped.into_owned();
                     match current_tag {
                         Tag::Key => {
                             let p = PathBuf::from(&txt);
@@ -671,7 +673,11 @@ fn fetch_releases_from_s3(
                                     captures["version"].trim_start_matches('v').to_string();
                                 release.assets = vec![ReleaseAsset {
                                     name: exe_name.to_string(),
-                                    download_url: format!("{}{}", download_base_url, txt),
+                                    download_url: format!(
+                                        "{}{}",
+                                        download_base_url,
+                                        txt.to_string()
+                                    ),
                                 }];
                                 debug!("Matched release: {:?}", release);
                             } else {
@@ -680,7 +686,7 @@ fn fetch_releases_from_s3(
                         }
                         Tag::LastModified => {
                             let release = current_release.get_or_insert(Release::default());
-                            release.date = txt;
+                            release.date = txt.to_string();
                         }
                         _ => (),
                     }
